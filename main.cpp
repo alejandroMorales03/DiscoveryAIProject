@@ -7,26 +7,26 @@
 
 using namespace std;
 
-const short LOTS = 6, MAX_D = 1000, MIN_D = 0, MAX_O = 100, MIN_O = 0;
+const short LOTS = 6, MAX_D = 1000, MIN_D = 0;
 
-void Populator(float* , bool decimal = false);
+void Populator(float*);
 void Printer(float*);
 void distanceCombiner(float*, float*, float*);
 void Normalizer(float*, float *);
 void coefficientCombiner(float*, float*, float*, float, float);
 bool inputValidation(float, float);
-
+void SpaceNormalizer(float*, float*);
 
 int main(){
 
     //Step one: Generate 3 arrays containing distance_one, occ_rate, distance_two
     float distance_one[LOTS];
-    float occupancy_rate[LOTS];
+    float empty_spaces[LOTS];
     float distance_two[LOTS];
   
     Populator(distance_one);
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    Populator(occupancy_rate, true);
+    Populator(empty_spaces);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     Populator(distance_two);
  
@@ -35,7 +35,7 @@ int main(){
     cout << "    1     2     3     4     5     6  LOTS\n";
     Printer(distance_one);
     cout << " DISTANCE 1\n";
-    Printer(occupancy_rate);
+    Printer(empty_spaces);
     cout << " OCCUPANCY RATE\n";
     Printer(distance_two);
     cout << " DISTANCE 2\n\n";
@@ -49,12 +49,14 @@ int main(){
     cout << "    1     2     3     4     5     6  LOTS\n";
     Printer(total_distances);
     cout << " TOTAL DISTANCE\n";
-    Printer(occupancy_rate);
+    Printer(empty_spaces);
     cout << " OCCUPANCY RATE\n\n";
 
     //Normalizing Data
     float normalized_distance[LOTS];
+    float normalized_spaces[LOTS];
     Normalizer(total_distances, normalized_distance);
+    SpaceNormalizer(empty_spaces, normalized_spaces);
 
     cout << setprecision(3) << fixed;
     cout << "Normalizing Total Distance Data...\n";
@@ -62,65 +64,23 @@ int main(){
     cout << "    1     2     3     4     5     6  LOTS\n";
     Printer(normalized_distance);
     cout << " NORMALIZED TOTAL DISTANCE\n";
-    Printer(occupancy_rate);
+    Printer(empty_spaces);
     cout << " OCCUPANCY RATE\n\n";
 
     //Combining Data Using Coefficients d,p
 
     float combined_results[LOTS];
     cout << "Combining Data Using Coefficients d and p";
-    
-    /**************************************************************************************/
-    coefficientCombiner(normalized_distance, occupancy_rate, combined_results, 0.40, 0.60);
-    cout << "\n\nTesting using d = 0.40 and p = 0.60\n";
-    cout << "\nPrinting Current Data: \n\n";
-    cout << "    1     2     3     4     5     6  LOTS\n";
-    Printer(occupancy_rate);
-    cout << " OCCUPANCY RATE\n";
-    
-    cout << setprecision(0);
 
-    Printer(distance_one);
-    cout << " DISTANCE 1\n";
-    Printer(distance_two);
-    cout << " DISTANCE 2\n";
-    Printer(total_distances);
-    cout << " TOTAL DISTANCE\n\n";
-    
-    cout << setprecision(3) << fixed;
-    Printer(combined_results);
-    cout << " Final Results\n";
     
     /**************************************************************************************/
-    coefficientCombiner(normalized_distance, occupancy_rate, combined_results, 0.50, 0.50);
-    cout << "\n\nTesting using d = 0.50 and p = 0.50\n";
-    cout << "\nPrinting Current Data: \n\n";
-    cout << "    1     2     3     4     5     6  LOTS\n";
-    Printer(occupancy_rate);
-    cout << " OCCUPANCY RATE\n";
-    
-    cout << setprecision(0);
-
-    Printer(distance_one);
-    cout << " DISTANCE 1\n";
-    Printer(distance_two);
-    cout << " DISTANCE 2\n";
-    Printer(total_distances);
-    cout << " TOTAL DISTANCE\n\n";
-    
-    cout << setprecision(3) << fixed;
-    Printer(combined_results);
-    cout << " Final Results\n";
-    
-    /**************************************************************************************/
-    coefficientCombiner(normalized_distance, occupancy_rate, combined_results, 0.45, 0.55);
+    coefficientCombiner(normalized_distance, normalized_spaces, combined_results, 0.490, 0.510);
     cout << "\n\nTesting using d = 0.45 and p = 0.55\n";
     cout << "\nPrinting Current Data: \n\n";
     cout << "    1     2     3     4     5     6  LOTS\n";
-    Printer(occupancy_rate);
-    cout << " OCCUPANCY RATE\n";
-    
     cout << setprecision(0);
+    Printer(empty_spaces);
+    cout << " OCCUPANCY RATE\n";
 
     Printer(distance_one);
     cout << " DISTANCE 1\n";
@@ -146,11 +106,11 @@ int main(){
             cout << "\nINVALID INPUT. VALID RANGE [0 - 1]\n";
     }while(!inputValidation(dRate, pRate));
     
-    coefficientCombiner(normalized_distance, occupancy_rate, combined_results, dRate, pRate);
+    coefficientCombiner(normalized_distance, empty_spaces, combined_results, dRate, pRate);
     cout << "\nTesting using d = 0.45 and p = 0.55\n";
     cout << "\nPrinting Current Data: \n\n";
     cout << "    1     2     3     4     5     6  LOTS\n";
-    Printer(occupancy_rate);
+    Printer(empty_spaces);
     cout << " OCCUPANCY RATE\n";
     
     cout << setprecision(0);
@@ -172,16 +132,12 @@ int main(){
 
 }
 
-void Populator(float* array_address, bool decimal){
+void Populator(float* array_address){
     srand(time(0));
     for(short index = 0; index < LOTS; index++){
-        if(!decimal)
             array_address[index] = (rand() % (MAX_D - MIN_D - 1) + MIN_D);
-        else{
-            array_address[index] = (rand() % (MAX_O - MIN_O - 1) + MIN_O);
-            array_address[index] /= 100.0;
-        }
     }
+
 }
 void Printer(float* array_address){
     for(short index = 0; index < LOTS; index++){
@@ -220,4 +176,21 @@ bool inputValidation(float arg_one, float arg_two){
     if(arg_one < 0 || arg_one > 1 || arg_two < 0 || arg_two > 1)
         valid = false;
     return valid;
+}
+
+void SpaceNormalizer(float* non, float* norm){
+    float MAX_VALUE = non[0];
+    float MIN_VALUE = non[0];
+
+    for(short index = 1; index < LOTS; index++){
+        if(non[index] > MAX_VALUE)
+            MAX_VALUE = non[index];
+        if(non[index] < MIN_VALUE)
+            MIN_VALUE = non[index];
+    }
+
+    for(short index = 0; index < LOTS; index++){
+        norm[index] = (MAX_VALUE - non[index]) / (MAX_VALUE - MIN_VALUE);
+    }
+
 }
