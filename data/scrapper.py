@@ -33,10 +33,8 @@ def scrape_and_save_data():
     driver.quit()
 
 # Schedule the scraping task to run every hour
-schedule.every(0.33).hours.do(scrape_and_save_data)
+schedule.every(0.25).hours.do(scrape_and_save_data)
 
 while True:
     schedule.run_pending()
-    time.sleep(0.33)
-    
-
+    time.sleep(1)
